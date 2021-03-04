@@ -1,0 +1,9 @@
+BIN_PRJ = StepMotor
+FOLDER_PRJ = build
+PROJECT = $(FOLDER_PRJ)/$(BIN_PRJ)
+
+flash: $(PROJECT).bin
+	st-flash write $(PROJECT).bin 0x08000000
+
+erase:
+	st-flash erase

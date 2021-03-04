@@ -1,0 +1,353 @@
+1) Пустой проект: /core /lib /plib Makefile main.c
+	/core
+		cmsis_gcc.h // константы и описания внутренних структур ядра CortexM0
+		core_cm0.h  //
+		
+		startup_stm32f051x8.s
+		
+		stm32f051r8tx_mmap.ld // Линкерный файл, который говорит куда класть
+								 определёлённые части прогарммы, какой их размер и т.д.
+		stm32f051x8.h // Описание всей нашем перефирии, которая находится в нашем МК
+						 (адреса, название, как к ним обращаться)
+		stm32f0xx.h // Макросы для общения с перефирией
+
+		system_stm32f0xx.c // Код для запуска системы тактирования
+		system_stm32f0xx.h //
+
+	/lib // Доп. файлы
+		system_handlers.c // Системный код
+
+	/plib // Заголовочные фалй для перефирии (адреса и как к ним обращаться)
+		stm32f0xx_ll_adc.h
+		stm32f0xx_ll_bus.h
+		...
+		stm32f0xx_ll_utils.h
+		stm32f0xx_ll_wwdg.h
+
+2) Устройство ядра
+	Cortex-M provessor Core
+	NVIC (+ Configuration registers)
+	Perpherial (NMI, IRQs)
+	SysTick (System Tick Timer)
+	Internal bud interconnect
+
+	Вся переферия МК имеет доступ к DMA
+	Perpherial:
+		AHB2 Bus (all GPIOs)
+		AHB1 Bus (DMA, RCC, etc)
+		APB  Bus (USART, TIM etc)
+
+3) Пример инициализации. 03_system_clock	
+
+	LL_FLASH_SetLatency (LL_FLASH_LATENCY_1);
+	LL_RCC_HSI_Enable ();	// Включаем источник внутреннего тактировани
+	while (LL_RCC_HSI_IsReady () != 1); // Дожидаемся его стабилиации
+
+	LL_RCC_PLL_ConfigDomain_SYS (LL_RCC_PLLSOURCE_HSI_DIV_2,
+				     			 LL_RCC_PLL_MUL_12); // Настраиваев предделитель и умножитель
+	LL_RCC_PLL_Enable (); // Включаем умножитель
+	while (LL_RCC_PLL_IsReady () != 1); // Дожидаемся его стабилизации
+
+	LL_RCC_SetAHBPrescaler (LL_RCC_SYSCLK_DIV_1); // Ставим предделитель на шину AHB
+	LL_RCC_SetSysClkSource (LL_RCC_SYS_CLKSOURCE_PLL); // Выставляем для системы тактирования
+													   // наш модуль с умножителем
+	while (LL_RCC_GetSysClkSource () != LL_RCC_SYS_CLKSOURCE_STATUS_PLL); // Дожидаемся
+	// пока стабилизирется источник для системной шины
+
+	LL_RCC_SetAPB1Prescaler (LL_RCC_APB1_DIV_1); // Подключаем сигнал с тактированием на шину APB
+
+   Латентность памяти
+	#define FLASH_0LAT_DELYA0LAT
+	#define FLASH_1LAT_DELYA0LAT
+	#define FLASH_1LAT_DELYA1LAT
+
+   Сбрасывается ОЗУ и все регистры кроме RCC_CSR
+
+   Система сброса. 03_reset
+
+	if (LL_RCC_IsActiveFlag_SFTRST ()) {			// Программный сброс
+		LL_GPIO_SetOutput (GPIOC, LL_GPIO_PIN_9);
+		LL_RCC_ClearResetFlags ();
+	}
+	if (LL_RCC_IsActiveFlag_PINRST ())
+		LL_GPIO_TogglePin (GPIOC, LL_GPIO_PIN_8);
+
+	while (1) {
+		delay (); // Пока не понятно как реализовывать
+		NVIC_SystemReset ();
+	}
+
+4) Цифровой выход. Основные LL функции
+	LL_GPIO_SetPinMode (GPIOx, LL_GPION_PIN_x, LL_GPIO_MODE_OUTPUT); // Только один пин!
+	
+	LL_GPIO_SetPinOutputType (GPIOx, LL_GPIO_PIN_x, Режим);		 // Только один пин!
+	Режимы:
+		LL_GPIO_OUTPUT_PUSHPULL
+		LL_GPIO_OUTPUT_OPENDRAIN
+
+	LL_GPIO_WriteOutputPort (GPIOx, Выходное значение (uint32_t)); 	 // Можно много пинов 
+	
+	LL_GPIO_SetOutputPin   (GPIOx, биты пинов);			 // Можно много пинов
+	LL_GPIO_ResetOutputPin (GPIOx, биты пинов);			 // Можно много пинов
+
+   Цифровой вход. Основные LL функции
+	
+	LL_GPIO_SetPinMode (GPIOx, LL_GPION_PIN_x, LL_GPIO_MODE_INPUT); // Только один пин!
+	
+	LL_GPIO_SetPinPull (GPIOx, LL_GPIO_PIN_x, Режим);
+	Режимы:
+		LL_GPIO_PULL_UP
+		LL_GPIO_PULL_DOWN
+		LL_GPIO_PULL_NO
+
+	LL_GPIO_ReadInputPort (GPIOx);
+	LL_GPIO_IsInputPinSet (GPIOx, биты пинов);
+
+   Альтернативный режим. Основные LL функции
+	LL_GPIO_setPinMode (GPIOx, LL_GPIO_PIN_x, LL_GPIO_MODE_ALTERNATE);
+	
+	LL_GPIO_SetPinPull (GPIOx, LL_GPIO_PIN_x, Режим);
+	Режимы:
+		LL_GPIO_PULL_UP
+		LL_GPIO_PULL_DOWN
+		LL_GPIO_PULL_NO
+	LL_GPIO_SetPinOutputType (GPIOx, LL_GPIO_PIN_x, Режим);
+	Режимы:
+		LL_GPIO_OUTPUT_PUSHPULL
+		LL_GPIO_OUTPUT_OPENDRAIN
+	
+	LL_GPIO_SetAFPin_0_7 (GPIOx, LL_GPIO_PIN_x, режим);		 // Только один пин!
+	Режимы:
+		LL_GPIO_AF_(1..7)
+	LL_GPIO_SetAFPin_8_15 (GPIOx, LL_GPIO_PIN_x, режим);		 // Только один пин!
+	Режимы:
+		LL_GPIO_AF_(8..15)
+
+   Таблица альтернативных режимов
+	GPIO_AF_0 WKUP, EVENTOUT, TIM15, SPI1, TIM17,MCO, SWDAT,
+	 	  SWCLK, TIM14, BOOT,USART1, CEC, IR_OUT, SPI2
+	GPIO_AF_1 USART2, CEC, TIM3, USART1, USART2,EVENTOUT, I2C1,
+	   	  I2C2, TIM15
+	GPIO_AF_2 TIM2, TIM1, EVENTOUT, TIM16, TIM17
+	GPIO_AF_3 TS, I2C1, TIM15, EVENTOUT
+	GPIO_AF_4 TIM14
+	GPIO_AF_5 TIM16, TIM17
+	GPIO_AF_6 EVENTOUT
+	GPIO_AF_7 COMP1 OUT, COMP2 OUT
+	
+   Аналоговый вход. Основные LL функции
+	LL_GPIO_SetPinMode (GPIOx, LL_GPIO_PIN_x, LL_GPIO_MODE_ANALOG);
+
+5) Контроллер прерываний. Основные LL методы
+
+	SCB : Initial SP Value, Reset, NMI, HardFault, SVCall, PendSV, SysTick
+	NVIC : {IRQ0, ..., IRQ31} // Where IRQ — Interrupt ReQuest
+
+	Exception number = (IRQ number + 16) * 4
+
+	void NVIC_EnableIRQ (IRQn_Type IRQn);
+	void NVIC_DisableIRQ (IRQn_Type IRQn);
+	void NVIC_SetPriority (IRQn_Type IRQn, uint32_t priority);
+
+6) SYSCFG -> EXTI -> NVIC
+   Настройка тактирования
+	LL_APB1_GRP2_EnableClock (LL_APB1_GRP2_PERIPH_SYSCFG);
+   Настройка конфигурационного регистра
+	LL_SYSCFG_SetEXTISource (LL_SYSCFG_EXTI_PORTx, LL_SYSCFG_EXTI_LINEx); // Только один пин!
+	NVIC:
+		EXTI_0_1_IRQHandler
+		EXTI_2_3_IRQHandler
+		EXTI_4_15_IRQHandler
+
+   Настраиваем EXTI
+	LL_EXTI_EnableIT_0_31 (LL_EXTI_LINE_x);		 // Включить прерывание
+	LL_EXTI_EnableFallingTrig_0_31 (LL_EXTI_LINE_x); // Задний фронт
+	LL_EXTI_EnableRisingTrig_0_31 (LL_EXTI_LINE_x);  // Передний фронт
+	LL_EXTI_IsActiveFlag_0_31 (LL_EXTI_LINE_x);
+	LL_EXTI_ClearFlag_0_31 (LL_EXTI_LINE_x);
+  
+   Системный таймер. Инициализация
+	SysTick_Config (Количество тактов);
+	Имплементация void SysTick_Handler (void);
+
+7) Виды таймеров в stm32
+	Системный таймер (SysTick Timer)
+	Базовые таймеры (TIM6/TIM7)
+	Таймеры общего назначения (TIM2/3/14/15/16/17)
+	Расширенный таймер (TIM1)
+	Часы реального времени
+
+	Счётчик. Инициализация
+	Включение тактирования (шина APB)
+	LL_TIM_SetPrescaler (47999); // Настройка предделителя (PSC)
+	LL_TIM_SetCounterMode (); // Настройка режима счётчика (CR1)
+	LL_TIM_SetAutoReload (999); // Настройка предзагрузочного регистра (ARR)
+	LL_TIM_EnableIT_UPDATE (); // Включение генерации прерывания по переполнению
+	Настройка прерывания в NVIC
+  	LL_TIM_EnableCounter (TIM2); // Запускаем счётчик
+
+   Счётчик. Прерывание
+	Не забыть очистить флаг!!!
+	LL_TIM_ClearFlag_UPDATE ();
+
+8) Таймеры общего назначения
+
+	Счётчик
+		Есть теневой регистр, при установке которого предзагрузка регситра ARR
+		происходит после переполнения 
+
+	Захват по входу (IC - Input Channel)
+	Включение тактирование (шина APB)
+	LL_TIM_SetPrescaler Настройка предделителя 
+	LL_TIM_IC_SetFilter // Настройка фильтра после TI1
+	LL_TIM_IC_SetPolarity // Настрйоки входящие фронта сигнала для Edge detector
+	LL_TIM_IC_SetActiveInput () // Выбор входа для канала IC1
+	LL_TIM_IC_SetPrescaler () // Настройка промежуточного предделителя
+	LL_TIM_CC_EnableChannel () // Включение захвата по входу
+
+	LL_TIM_EnableIT_CC1 () // Включение генерации прерывания по захвату
+	LL_TIM_EnableCOunter () // Включение счётчика
+	// НАстройка прерывания TIM2_IRQn в NVIC
+
+	// Не забыть сбросить флаг!
+	LL_TIM_ClearFlag_CC1 (); 
+
+	Энкодер:
+	Инициализация входов в GPIO (альт. функция, подтяжка на землю)
+	Включение тактирования таймера
+	Включение режима энкодера [SMCR]
+		LL_TIM_SetEncoderMode (TIMx, LL_TIM_ENCODERMODE_X4_TI2);
+	Натсройка полярности выхода мультиплексора TIxFPx [CCER]
+		LL_TIM_IC_SetPriority (TIMx, Channel, LL_TIM_IC_POLARITY_FALLING);
+	Настройка регистра предзагрузки
+		LL_TIM_SetAutoReload ();
+	Включение таймера
+
+	Опрос:
+	LL_TIM_GetCounterMode (TIMx)[CR1];
+	LL_TIM_GetCOunter (TIMx)[CNT];
+
+	Режим по сравнению. Инициализация
+		Инициализациявыхода GPIO (альт. функция)
+		Включение тактирования таймера
+		Установка предделителя -> LL_TIM_SetPrescaler
+		Уст. регистра предзагрузки -> LL_TIM_SetAutoReload [ARR]
+		Уст. значения для сравнения -> LL_TIM_OC_SetCompareCHx [CCRx]
+		Включение канала -> LL_TIM_CC_EnableChannel [CCER]
+		Полярность выхода -> LL_TIM_OC_SetPolarity [CCER]
+		Режим выхода -> LL_TIM_OC_SetMode [CCMR]
+			LL_TIM_OCMODE_TOGGLE
+		Включение прерывания -> LL_TIM_EnableIT_CC1 [DIER]
+		Вклчюение счётчика -> LL_TIM_EnableCounter [CR1]
+		Настрйока NVIC
+
+	ШИМ. Инициализация
+		Аналогично предыдущему коду, просто изменим пару параметров:
+		Режим выхода -> LL_TIM_OC_SetMode [CCMR]
+			LL_TIM_OCMODE_PWM1 (или _PWM2)
+		Режим счётчика -> LL_TIM_SetCounterMode [CR1]
+			LL_TIM_COUNTERMODE_UP [DIR]
+			LL_TIM_COUNTERMODE_DOWN [DIR]
+			LL_TIM_COUNTERMODE_CENTER_UP [CMS]
+			LL_TIM_COUNTERMODE_CENTER_DOWN [CMS]
+			LL_TIM_COUNTERMODE_CENTER_UP_DOWN [CMS]
+
+9) UART
+	Техника oversampling
+
+   Включение модуля
+	LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
+	
+	LL_GPIO_SetPinMode (GPIOA, LL_GPIO_PIN_9,  LL_GPIO_MODE_ALTERNATE);
+	LL_GPIO_SetPinMode (GPIOA, LL_GPIO_PIN_10, LL_GPIO_MODE_ALTERNATE);
+	
+	LL_GPIO_SetAFPin_8_15 (GPIOA, LL_GPIO_PIN_9,  GPIO_AF_1);
+	LL_GPIO_SetAFPin_8_15 (GPIOA, LL_GPIO_PIN_10, GPIO_AF_1);
+	
+	LL_GPIO_SetSpeedPin (GPIOA, LL_GPIO_PIN_9,  LL_GPIO_SPEED_FREQ_HIGH);
+	LL_GPIO_SetSpeedPin (GPIOA, LL_GPIO_PIN_10, LL_GPIO_SPEED_FREQ_HIGH);
+	
+	LL_APB1_GRP2_EnableClock (LL_APB1_GRP2_PERIPH_USART1);
+	LL_RCC_SetUSARTClockSource (LL_RCC_USART1_CLKSOURCE_HSI);
+
+   Инициализация модуля
+	LL_USART_SetTransferDirection (USART1, LL_USART_DIRECTION_TX_RX);
+	LL_USART_SetParity (USART1, LL_USART_PARITY_EVEN);
+	LL_USART_SetDataWidth (USART1, LL_USART_DATAWIDTH_8B);
+	LL_USART_SetStopBitsLength (USART1, LL_USART_STOPBITS_1);
+	LL_USART_SetBaudRate (USART1, SystemCoreClock, LL_USART_OVERSAMPLING_16, 115200);
+	
+	LL_USART_EnableIT_IDLE (USART1);
+	LL_USART_EnableIT_RXNE (USART1);
+	
+   Запуск модуля
+	LL_USART_Enable (USART1);
+	while (!(LL_USART_IsActiveFlag_TEACK (USART1) &&
+		 LL_USART_IsActiveFlag_REACK (USART1)));
+	
+	NVIC_SetPriority (USART1_IRQn, 0);
+	NVIC_EnableIRQ (USART1_IRQn);
+
+	TX, RX:
+		LL_USART_TransmitData8(USARTx, void *);
+		LL_USART_ReceiveData8(USARTx);
+
+10) DMA
+    Инициализация
+	LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA1);
+
+  	NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0);
+  	NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
+	
+15) ADC и DAC
+    Калибровка АЦП
+
+	1) Выключение ADC -> 2) Ожидание готовности ADC, затем
+	LL_ADC_StartCalibration ()
+	Проверка LL_ADC_IsCalibrationOnGoing
+	5) Включение ADC -> 6) Ожидание готовности ADC
+
+   Время получения одного семпла
+	LL_ADC_SetSamplingTimeCommonChannels ();
+
+   Данные могут быть выровнены слева или справа
+	LL_ADC_SetDataAlignment (LSB or MSB);	
+   Разрешение АЦП
+	LL_ADC_SetResolution ();
+   Режим работы ADC
+	LL_ADC_SetContinuousMode (Single or Continuous);
+	Или LL_ADC_REF_SetSequencerDiscount ();
+
+   Использование DMA
+	Настроить DMA и в качестве адреса указать ADC-DR
+	Включить DMA в конф. регистрах ADC (LL_ADC_REG_SetDMATransfer)
+	Считываем данные последовательно: ch0, ch1, ch2, cho0, ch1, ...
+
+   Пример инициализации
+	Включение тактирования
+	Включения источника 
+	Калибровка ADC
+	Включение ADC
+	LL_ADC_SetResolution (ADC1, LL_ADC_RESOLUTION_12B);
+	LL_ADC_SetData_Alignment (ADC1, LL_ADC_DATA_ALIGN_RIGHT);
+	LL_ADC_SetSamplingTimeCommonChannels (ADC1, 
+					      LL_ADC_SAMPLINGTIME_239CYCLES_5);
+	LL_ADC_REG_SetTriggerSource (ADC1, LL_ADC_REG_TRIG_SOFTWARE); 
+	LL_ADC_REG_SetSequencerChannels (ADC1, LL_ADC_CHANNEL_TEMPSENSOR |
+					       LL_ADC_CHANNEL_VREFINT);
+	LL_ADC_REG_SetContinuousMode (ADC1 , LL_ADC_REG_CONV_CONTINUOUS);
+	LL_ADC_REG_SetDMATransfer (ADC1, LL_ADC_REG_DMA_TRANSFER_UNLIMITED);
+	LL_ADC_REG_SetOverrun (ADC1, LL_ADC_REG_OVR_DATA_PRESERVED);
+	Настройка DMA + включение прерывания на канал 1 по TC
+	Настройка NVIC
+	LL_ADC_SetCommonPathinternalCh (ADC, LL_ADC_PATH_INTERNAL_TEMPSENSOR |
+					     LL_ADC_PATH_INTERNAL_VREFINT);
+	LL_ADC_REG_StartConversion (ADC1);
+
+
+
+
+
+
+
+		
