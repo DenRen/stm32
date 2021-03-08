@@ -150,8 +150,8 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   
-  const int mAngle = 360 * 1000;
-  const int dtime = 1;
+  const int mAngle = 2 * 360 * 1000;
+  const int dtime = 200;
   const int time_sleep = 2000;
 
   StepMotor stepMotor = {
@@ -163,25 +163,50 @@ int main(void)
     .enable.pin  = ENABLE_Pin 
   };
 
+  ST_Enable (stepMotor);
+  
+  LL_TIM_CC_EnableChannel (TIM2, LL_TIM_CHANNEL_CH1);
+  LL_TIM_EnableCounter (TIM2);
+
+  LL_TIM_OC_SetCompareCH1 (TIM2, 5);
+
+  /*for (int i = 0; i < 100; i += 10) {
+      LL_TIM_OC_SetCompareCH1 (TIM1, i);
+      LL_mDelay (500);
+  }*/
+
+  LL_GPIO_SetOutputPin (LD3_GPIO_Port, LD3_Pin);
+
   while (1)
   {
     /* USER CODE END WHILE */
-    
+
     /* USER CODE BEGIN 3 */
+    /*
+    LL_GPIO_ResetOutputPin (ENABLE_GPIO_Port, ENABLE_Pin);
 
-    ST_Enable (stepMotor);
-    ST_SetDir_ClockWise (stepMotor, CLOCKWISE);
+    for (int i = 0; i < 200; ++i) {
+      LL_GPIO_SetOutputPin (STEP_GPIO_Port, STEP_Pin);
+      LL_mDelay (dtime);
+      
+      LL_GPIO_ResetOutputPin (STEP_GPIO_Port, STEP_Pin);
+      LL_mDelay (dtime);
+    }
+
+    LL_mDelay (2000);
+    */
+
+    /*ST_SetDir_ClockWise (stepMotor, CLOCKWISE);
+    LL_mDelay (1);
     ST_Rotate (stepMotor, mAngle);
-    ST_Disable (stepMotor);
 
     LL_mDelay (time_sleep);
     
-    ST_Enable (stepMotor);
     ST_SetDir_CounterClockWise (stepMotor, CLOCKWISE);
+    LL_mDelay (1);
     ST_Rotate (stepMotor, mAngle);
-    ST_Disable (stepMotor);
 
-    LL_mDelay (time_sleep);
+    LL_mDelay (time_sleep);*/
   }
   /* USER CODE END 3 */
 }

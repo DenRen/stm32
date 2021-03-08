@@ -6,6 +6,7 @@
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/Core/Inc",
                 "${workspaceFolder}/Core/Src",
+                "${workspaceFolder}/Drivers",
                 "${workspaceFolder}/Drivers/STM32F0xx_HAL_Driver/Inc"
             ],
             "defines": [

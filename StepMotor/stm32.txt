@@ -206,8 +206,8 @@
 	LL_TIM_CC_EnableChannel () // Включение захвата по входу
 
 	LL_TIM_EnableIT_CC1 () // Включение генерации прерывания по захвату
-	LL_TIM_EnableCOunter () // Включение счётчика
-	// НАстройка прерывания TIM2_IRQn в NVIC
+	LL_TIM_EnableCounter () // Включение счётчика
+	// Настройка прерывания TIM2_IRQn в NVIC
 
 	// Не забыть сбросить флаг!
 	LL_TIM_ClearFlag_CC1 (); 
@@ -225,7 +225,7 @@
 
 	Опрос:
 	LL_TIM_GetCounterMode (TIMx)[CR1];
-	LL_TIM_GetCOunter (TIMx)[CNT];
+	LL_TIM_GetCounter (TIMx)[CNT];
 
 	Режим по сравнению. Инициализация
 		Инициализациявыхода GPIO (альт. функция)

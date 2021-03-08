@@ -76,10 +76,10 @@ void Error_Handler(void);
 #define ENABLE_GPIO_Port GPIOC
 #define DIR_Pin LL_GPIO_PIN_1
 #define DIR_GPIO_Port GPIOC
-#define STEP_Pin LL_GPIO_PIN_2
-#define STEP_GPIO_Port GPIOC
 #define B1_Pin LL_GPIO_PIN_0
 #define B1_GPIO_Port GPIOA
+#define STEP_Pin LL_GPIO_PIN_5
+#define STEP_GPIO_Port GPIOA
 #define LD4_Pin LL_GPIO_PIN_8
 #define LD4_GPIO_Port GPIOC
 #define LD3_Pin LL_GPIO_PIN_9

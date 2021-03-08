@@ -18,6 +18,14 @@
 	"files.associations": {
 		"main.h": "c",
 		"stm32f051x8.h": "c",
-		"stm32f0xx.h": "c"
+		"stm32f0xx.h": "c",
+		"tim.h": "c",
+		"stm32f0xx_ll_crs.h": "c",
+		"stm32f0xx_ll_rcc.h": "c",
+		"stm32f0xx_ll_pwr.h": "c",
+		"stm32f0xx_ll_cortex.h": "c",
+		"stm32f0xx_ll_system.h": "c",
+		"stm32f0xx_ll_dma.h": "c",
+		"stm32f0xx_ll_gpio.h": "c"
 	}
 }

@@ -10,7 +10,7 @@
 
 #define SM_DELTA_TIME_ms (SM_DELTA_TIME / 1000)
 
-#define NUM_POS_PER_REV 200      // Number positions shaft per 360 degrees
+#define NUM_POS_PER_REV 200         // Number positions shaft per 360 degrees
 #define NUM_STEP_PER_mANGLE NUM_POS_PER_REV / (360 * 1000)
 
 typedef struct
@@ -52,11 +52,14 @@ __STATIC_INLINE void ST_Rotate (const StepMotor stepMotor, uint32_t d_mAngle) { 
 
     const wire_t step = stepMotor.step;
 
-    while (numSteps--) {
+    //while (numSteps--) {
+    for (int i = 0; i < numSteps; ++i) {
         LL_GPIO_SetOutputPin (step.port, step.pin);
+        LL_GPIO_SetOutputPin (LD3_GPIO_Port, LD3_Pin);
         LL_mDelay (SM_DELTA_TIME_ms);
 
         LL_GPIO_ResetOutputPin (step.port, step.pin);
+        LL_GPIO_ResetOutputPin (LD3_GPIO_Port, LD3_Pin);
         LL_mDelay (SM_DELTA_TIME_ms);
     }
 }
