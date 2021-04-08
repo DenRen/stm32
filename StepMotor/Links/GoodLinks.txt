@@ -1,0 +1,8 @@
+1) ST-Link install
+    https://freeelectron.ro/installing-st-link-v2-to-flash-stm32-targets-on-linux/
+2) Нормально про таймеры общего назначения
+    http://robocraft.ru/blog/ARM/739.html
+
+
+Теория:
+    1) Формула Родрига: https://ru.wikipedia.org/wiki/Формула_поворота_Родрига

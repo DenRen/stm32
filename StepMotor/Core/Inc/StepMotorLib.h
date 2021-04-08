@@ -1,7 +1,9 @@
 #ifndef STEP_MOTOR_LIB_H
 #define STEP_MOTOR_LIB_H
 
-#include "cmsis_gcc.h"
+// #include "cmsis_gcc.h"
+
+#include "main.h"
 
 #include "stm32f0xx.h"
 #include "stm32f0xx_ll_gpio.h"
@@ -40,10 +42,10 @@ __STATIC_INLINE void ST_Disable (const StepMotor stepMotor) {
     LL_GPIO_SetOutputPin (stepMotor.enable.port, stepMotor.enable.pin);
 }
 
-__STATIC_INLINE void ST_SetDir_ClockWise        (const StepMotor stepMotor, DIR_ROTATE dir) {
+__STATIC_INLINE void ST_SetDir_ClockWise        (const StepMotor stepMotor) {
     LL_GPIO_SetOutputPin (stepMotor.dir.port, stepMotor.dir.pin);
 }
-__STATIC_INLINE void ST_SetDir_CounterClockWise (const StepMotor stepMotor, DIR_ROTATE dir) {
+__STATIC_INLINE void ST_SetDir_CounterClockWise (const StepMotor stepMotor) {
     LL_GPIO_ResetOutputPin (stepMotor.dir.port, stepMotor.dir.pin);
 }
 
@@ -57,11 +59,24 @@ __STATIC_INLINE void ST_Rotate (const StepMotor stepMotor, uint32_t d_mAngle) { 
         LL_GPIO_SetOutputPin (step.port, step.pin);
         LL_GPIO_SetOutputPin (LD3_GPIO_Port, LD3_Pin);
         LL_mDelay (SM_DELTA_TIME_ms);
+        LL_mDelay (2);
 
         LL_GPIO_ResetOutputPin (step.port, step.pin);
         LL_GPIO_ResetOutputPin (LD3_GPIO_Port, LD3_Pin);
         LL_mDelay (SM_DELTA_TIME_ms);
+        LL_mDelay (2);
     }
 }
+
+// --------------------------------------
+
+typedef struct {
+    uint32_t number_steps;
+    uint32_t timer_counter;
+} driver_memory_t;
+
+extern driver_memory_t driver_memory;
+
+void ST_Step_Driver ();
 
 #endif // STEP_MOTOR_LIB_H

@@ -26,6 +26,8 @@
 /* USER CODE BEGIN Includes */
 
 #include "StepMotorLib.h"
+#include "StepMotorParams.h"
+#include "axis.h"
 
 /* USER CODE END Includes */
 
@@ -90,9 +92,10 @@ void Step (int adim, int yon) // step motor fonksiyonu. iki adet parametre alica
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-int freq = 2400;
+const int freq = 2400;
 
 void TIM2_Callback (void) {
+  return;
   const int tim_freq = 240000;
 
   if (LL_TIM_IsActiveFlag_UPDATE (TIM2)) {
@@ -140,6 +143,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_TIM6_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
@@ -151,7 +155,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   
   const int mAngle = 2 * 360 * 1000;
-  const int dtime = 200;
+  const int dtime = 100;
   const int time_sleep = 2000;
 
   StepMotor stepMotor = {
@@ -163,40 +167,71 @@ int main(void)
     .enable.pin  = ENABLE_Pin 
   };
 
-  ST_Enable (stepMotor);
-  
-  LL_TIM_CC_EnableChannel (TIM2, LL_TIM_CHANNEL_CH1);
-  LL_TIM_EnableCounter (TIM2);
+  //LL_TIM_CC_EnableChannel (TIM2, LL_TIM_CHANNEL_CH1);
+  //LL_TIM_EnableCounter (TIM2);
 
-  LL_TIM_OC_SetCompareCH1 (TIM2, 5);
+  //LL_TIM_OC_SetCompareCH1 (TIM2, 5);
+
+  //ST_Enable (stepMotor);
 
   /*for (int i = 0; i < 100; i += 10) {
       LL_TIM_OC_SetCompareCH1 (TIM1, i);
       LL_mDelay (500);
   }*/
 
-  LL_GPIO_SetOutputPin (LD3_GPIO_Port, LD3_Pin);
+  axis_t axis = {
+    .motor = &stepMotor
+  };
 
+  for (int i = 0; i < 3; ++i) {
+    LL_GPIO_SetOutputPin (LD4_GPIO_Port, LD4_Pin);  
+    LL_mDelay (100);
+    LL_GPIO_ResetOutputPin (LD4_GPIO_Port, LD4_Pin);
+    LL_mDelay (100);
+  }
+
+  LL_TIM_DisableCounter (STEP_DRIVER_TIMER);
+  LL_TIM_DisableCounter (TIM2);
+  
+  LL_TIM_ClearFlag_UPDATE (TIM2);
+  LL_TIM_ClearFlag_UPDATE (STEP_DRIVER_TIMER);
+
+  LL_TIM_EnableIT_UPDATE (STEP_DRIVER_TIMER);
+  LL_TIM_EnableIT_UPDATE (TIM2);
+
+  ST_Enable (stepMotor);
+
+  AxisRotate (axis, PI_HALF_URAD, 1000 * 1000); 
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    /*
-    LL_GPIO_ResetOutputPin (ENABLE_GPIO_Port, ENABLE_Pin);
+    
+    LL_GPIO_SetOutputPin (LD4_GPIO_Port, LD4_Pin);
+    LL_mDelay (1500);
+    LL_GPIO_ResetOutputPin (LD4_GPIO_Port, LD4_Pin);
+    LL_mDelay (1500);
 
-    for (int i = 0; i < 200; ++i) {
+    //LL_mDelay (AxisRotate (PI_HALF_URAD, 500000) + 100); // (pi/2 rads, 0.5s)
+
+    /*
+    LL_GPIO_SetOutputPin (DIR_GPIO_Port, DIR_Pin);
+
+    for (int i = 0; i < 2 * 200; ++i) {
       LL_GPIO_SetOutputPin (STEP_GPIO_Port, STEP_Pin);
+      // LL_GPIO_SetOutputPin (LD3_GPIO_Port, LD3_Pin);
       LL_mDelay (dtime);
       
       LL_GPIO_ResetOutputPin (STEP_GPIO_Port, STEP_Pin);
+      // LL_GPIO_ResetOutputPin (LD3_GPIO_Port, LD3_Pin);
       LL_mDelay (dtime);
     }
 
-    LL_mDelay (2000);
+    LL_mDelay (time_sleep);
     */
-
-    /*ST_SetDir_ClockWise (stepMotor, CLOCKWISE);
+/*
+    ST_SetDir_ClockWise (stepMotor, CLOCKWISE);
     LL_mDelay (1);
     ST_Rotate (stepMotor, mAngle);
 
@@ -206,7 +241,8 @@ int main(void)
     LL_mDelay (1);
     ST_Rotate (stepMotor, mAngle);
 
-    LL_mDelay (time_sleep);*/
+    LL_mDelay (time_sleep);
+*/
   }
   /* USER CODE END 3 */
 }

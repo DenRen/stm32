@@ -26,6 +26,11 @@
 		"stm32f0xx_ll_cortex.h": "c",
 		"stm32f0xx_ll_system.h": "c",
 		"stm32f0xx_ll_dma.h": "c",
-		"stm32f0xx_ll_gpio.h": "c"
+		"stm32f0xx_ll_gpio.h": "c",
+		"stepmotorlib.h": "c",
+		"stepmotorparams.h": "c",
+		"cmsis_gcc.h": "c",
+		"axis.h": "c",
+		"gpio.h": "c"
 	}
 }
