@@ -9,7 +9,7 @@ driver_memory_t driver_memory = {0};
 void ST_Step_Driver () {
     static uint32_t counter = 0;
 
-    if (counter++ == 10000) {
+    if (counter++ == 0 || counter == 10000) {
         LL_TIM_EnableCounter (TIM2);
         counter = 0;
 

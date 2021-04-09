@@ -26,6 +26,6 @@ int AxisRotate (axis_t axis, int urad, int usec) {
     ST_SetDir_ClockWise (*axis.motor);
     
     LL_TIM_EnableCounter (STEP_DRIVER_TIMER);
-
+    
     return 0;
 }
