@@ -38,3 +38,6 @@ ARR в нужное значение, а CCR в 0, нужно:
 
     4) Начать генерацию импульса, включив счётчик
     LL_TIM_EnableCounter (TIM2);
+
+7) Миникостыль с библиотекой для arm-none-eabi-gdb:
+   arm-none-eabi-gdb: error while loading shared libraries: libmpfr.so.4

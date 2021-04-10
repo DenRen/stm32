@@ -34,9 +34,9 @@ void MX_TIM2_Init(void)
   /* Peripheral clock enable */
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM2);
 
-  TIM_InitStruct.Prescaler = 47999;
+  TIM_InitStruct.Prescaler = 47;
   TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
-  TIM_InitStruct.Autoreload = 999;
+  TIM_InitStruct.Autoreload = 4;
   TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
   LL_TIM_Init(TIM2, &TIM_InitStruct);
   LL_TIM_DisableARRPreload(TIM2);
@@ -51,6 +51,7 @@ void MX_TIM2_Init(void)
   LL_TIM_SetOnePulseMode(TIM2, LL_TIM_ONEPULSEMODE_SINGLE);
   LL_TIM_SetTriggerOutput(TIM2, LL_TIM_TRGO_RESET);
   LL_TIM_DisableMasterSlaveMode(TIM2);
+  LL_TIM_OC_DisablePreload(TIM2, LL_TIM_CHANNEL_CH1);
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
     /**TIM2 GPIO Configuration
     PA5     ------> TIM2_CH1

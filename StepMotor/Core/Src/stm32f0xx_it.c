@@ -155,7 +155,7 @@ void TIM6_DAC_IRQHandler(void)
   if (LL_TIM_IsActiveFlag_UPDATE (STEP_DRIVER_TIMER)) {
     LL_TIM_ClearFlag_UPDATE (STEP_DRIVER_TIMER);
 
-    //ST_Step_Driver ();
+    ST_Step_Driver ();
   }
   
   /* USER CODE END TIM6_DAC_IRQn 0 */

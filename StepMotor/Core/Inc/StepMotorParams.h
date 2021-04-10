@@ -12,7 +12,7 @@
 // All library in uradians
 
 #define FULL_STEP_FULL_TURN 200
-#define INC_STEP            16      // Decay Modes for {1, 2, 4, 8, 16, ...} - Step Increments
+#define INC_STEP            2       // Decay Modes for {1, 2, 4, 8, 16, ...} - Step Increments
 #define FREQ_TIMER          10000   // How many times per second the driver is called
 
 #define INC_FULL_TURN       ( FULL_STEP_FULL_TURN * INC_STEP )

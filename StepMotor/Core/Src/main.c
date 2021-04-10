@@ -184,14 +184,14 @@ int main(void)
   };
 
   for (int i = 0; i < 3; ++i) {
-    LL_mDelay (50);
+    LL_mDelay (30);
     LL_GPIO_SetOutputPin (LD4_GPIO_Port, LD4_Pin);  
-    LL_mDelay (50);
+    LL_mDelay (30);
     LL_GPIO_ResetOutputPin (LD4_GPIO_Port, LD4_Pin);
   }
   
   /// -------------------------------------------------------
-  
+  /* Эталон
   LL_TIM_CC_EnableChannel (TIM2, LL_TIM_CHANNEL_CH1);
 
   LL_TIM_OC_DisablePreload (TIM2, LL_TIM_CHANNEL_CH1);
@@ -201,45 +201,21 @@ int main(void)
   
   LL_TIM_OC_SetCompareCH1 (TIM2, 0);
   LL_TIM_EnableCounter (TIM2);
-
-  while (1)
-    {}
-
-  for (int i = 0; i < 5; ++i) {
-    LL_TIM_EnableCounter (TIM2);
-    LL_mDelay (200);
-    LL_TIM_DisableCounter (TIM2);
-  }
-
-  //LL_TIM_ClearFlag_UPDATE (TIM2);
-  //LL_TIM_OC_SetCompareCH1 (TIM2, 50);
-
-  LL_TIM_CC_EnableChannel (TIM2, LL_TIM_CHANNEL_CH1);
-  for (int i = 0; i < 5; ++i) {
-    LL_TIM_EnableCounter (TIM2);
-    LL_mDelay (200);
-    LL_TIM_DisableCounter (TIM2);
-  }
-  LL_TIM_CC_DisableChannel (TIM2, LL_TIM_CHANNEL_CH1);
-  
+  */
   /// -------------------------------------------------------
-
-  while (1)
-    {}
 
   LL_TIM_DisableCounter (STEP_DRIVER_TIMER);
   LL_TIM_DisableCounter (TIM2);
   
-  LL_TIM_ClearFlag_UPDATE (TIM2);
   LL_TIM_ClearFlag_UPDATE (STEP_DRIVER_TIMER);
+  LL_TIM_ClearFlag_UPDATE (TIM2);
 
   LL_TIM_EnableIT_UPDATE (STEP_DRIVER_TIMER);
   LL_TIM_EnableIT_UPDATE (TIM2);
 
   ST_Enable (stepMotor);
 
-  LL_TIM_CC_EnableChannel (TIM2, LL_TIM_CHANNEL_CH2);
-  LL_TIM_EnableIT_CC1 (TIM2);
+  LL_TIM_CC_EnableChannel (TIM2, LL_TIM_CHANNEL_CH1);
 
   while (1)
   {
@@ -248,12 +224,13 @@ int main(void)
     /* USER CODE BEGIN 3 */
     
     LL_GPIO_SetOutputPin (LD4_GPIO_Port, LD4_Pin);
-    LL_mDelay (1500);
+    LL_mDelay (1000);
 
-    AxisRotate (axis, PI_HALF_URAD, 1000 * 1000);
+    // TODO отдебажить вращение 
+    AxisRotate (axis, PI_HALF_URAD, 1000 * 200);
     
     LL_GPIO_ResetOutputPin (LD4_GPIO_Port, LD4_Pin);
-    LL_mDelay (1500);
+    LL_mDelay (1000);
   }
   /* USER CODE END 3 */
 }
