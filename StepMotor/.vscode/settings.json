@@ -31,6 +31,7 @@
 		"stepmotorparams.h": "c",
 		"cmsis_gcc.h": "c",
 		"axis.h": "c",
-		"gpio.h": "c"
+		"gpio.h": "c",
+		"stepmotordriver.h": "c"
 	}
 }

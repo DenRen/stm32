@@ -102,4 +102,7 @@ typedef struct {
 
 void SM_Driver_Set_Task (uint16_t number_step_motor, const sm_unit_task_t* unit_task);
 
+void SM_Enable_TIM_Channel (timer_channel_t timer_channel);
+void SM_Disable_TIM_Channel (timer_channel_t timer_channel);
+
 #endif // STEP_MOTOR_LIB_H

@@ -7,9 +7,10 @@
 // Timers -----------------------------------------------------------------------------------------
 
 #define SM_DRIVER_TIMER     TIM6
-#define SM_PULSE_TIMER_1    TIM2
+#define SM_PULSE_TIMER      TIM2
 
-#define SM_1_TIM_CHANNEL    LL_TIM_CHANNEL_CH1
+#define SM_0_TIM_CHANNEL    LL_TIM_CHANNEL_CH1
+#define SM_1_TIM_CHANNEL    LL_TIM_CHANNEL_CH2
 
 // Math constants ---------------------------------------------------------------------------------
 
@@ -19,7 +20,7 @@
 
 // Step motor params ------------------------------------------------------------------------------
 
-#define NUMBER_STEP_MOTORS 1
+#define NUMBER_STEP_MOTORS 2
 
 #define FULL_STEP_FULL_TURN 200
 #define INC_STEP            2       // Decay Modes for {1, 2, 4, 8, 16, ...} - Step Increments

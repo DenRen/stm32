@@ -22,50 +22,66 @@ static sm_driver_memory_t drimem = {0}; // Driver memory
   */
   /// -------------------------------------------------------
 
-__STATIC_FORCEINLINE void SendPulse (timer_channel_t timer_channel, uint32_t len_pulse) {
+__STATIC_FORCEINLINE void PrepearPulseChannel (timer_channel_t timer_channel, uint32_t pulse_len) {
     TIM_TypeDef* TIMx = timer_channel.TIMx;
     uint32_t TIM_CHANNEL_CHx = timer_channel.CHANNEL_CHx;
 
     LL_TIM_OC_DisablePreload (TIMx, TIM_CHANNEL_CHx);   // To instantly change timer settings
-    LL_TIM_OC_SetCompareCH1 (TIMx, len_pulse);          // Set length pulse
+    LL_TIM_OC_SetCompareCH1 (TIMx, pulse_len);          // Set length pulse
     
     LL_TIM_OC_EnablePreload (TIMx, TIM_CHANNEL_CHx);    // So that after the pulse, the output is 0
     LL_TIM_OC_SetCompareCH1 (TIMx, 0);                  // Set 0 to CCRx
+}
 
-    LL_TIM_EnableCounter (TIMx);                        // Start generate pulse
+__STATIC_FORCEINLINE void SM_Prepear_Pulse_Channel (timer_channel_t timer_channel) {
+    PrepearPulseChannel (timer_channel, PULSE_TIMER_COMPARE_VALUE);
+}
+
+__STATIC_FORCEINLINE void SendPulse (timer_channel_t timer_channel, uint32_t pulse_len) {
+    PrepearPulseChannel (timer_channel, pulse_len);
+
+    LL_TIM_EnableCounter (timer_channel.TIMx);                      // Start generate pulse
+}
+
+__STATIC_FORCEINLINE void SM_Send_Pulses (TIM_TypeDef* TIMx) {
+    LL_TIM_EnableCounter (TIMx);                                    // Start generate pulses
 }
 
 __STATIC_INLINE void SM_Send_Step (timer_channel_t timer_channel) {
     SendPulse (timer_channel, PULSE_TIMER_COMPARE_VALUE);
 }
 
-__STATIC_INLINE void SM_Enable_TIM_Channel (timer_channel_t timer_channel) {
+void SM_Enable_TIM_Channel (timer_channel_t timer_channel) {
     LL_TIM_CC_EnableChannel (timer_channel.TIMx, timer_channel.CHANNEL_CHx);
 }
 
-__STATIC_INLINE void SM_Disable_TIM_Channel (timer_channel_t timer_channel) {
+void SM_Disable_TIM_Channel (timer_channel_t timer_channel) {
     LL_TIM_CC_DisableChannel (timer_channel.TIMx, timer_channel.CHANNEL_CHx);
 }
+
+#include "stm32f0xx.h"
 
 // Только для одного таймера
 void ST_Step_Driver () {
     static uint8_t channels_is_active = 0;
-
     if (channels_is_active) {
+        LL_TIM_OC_DisablePreload (TIM2, LL_TIM_CHANNEL_CH1);
+        LL_TIM_OC_DisablePreload (TIM2, LL_TIM_CHANNEL_CH2);
+        
         for (int i = 0; i < NUMBER_STEP_MOTORS; ++i)
-            SM_Disable_TIM_Channel (drimem.step_motor[i].timer_channel);
+            LL_TIM_OC_SetCompareCH1 (drimem.step_motor[i].timer_channel.TIMx, 0);
         
         channels_is_active = 0;
     }
-
+    
     for (uint32_t i = 0; i < NUMBER_STEP_MOTORS; ++i) {
         uint16_t* number_steps = &(drimem.unit_task[i].number_steps);
 
         if (*number_steps) {      
-            sm_unit_task_t* unit_task = &(drimem.unit_task[i]);
+            sm_unit_task_t unit_task = drimem.unit_task[i];
             uint32_t counter = ++(drimem.counters[i]);
 
-            if (counter == unit_task->timer_counter || counter == 0) {
+            if (counter == unit_task.timer_counter || counter == 0) {
                 drimem.counters[i] = 0;
                 
                 (*number_steps)--;
@@ -73,13 +89,13 @@ void ST_Step_Driver () {
                 channels_is_active = 1;
                 const timer_channel_t timer_channel = drimem.step_motor[i].timer_channel;
 
-                SM_Enable_TIM_Channel (timer_channel);
+                SM_Prepear_Pulse_Channel (timer_channel);
             }
         }
     }
     
-    if (channels_is_active)
-        SM_Send_Step (drimem.step_motor[0].timer_channel);
+    //if (channels_is_active) 
+    //    LL_TIM_EnableCounter (TIM2);
 }
 
 // Step motor driver memory ---------------------------------
@@ -127,8 +143,7 @@ void SM_Driver_Set_Direction (uint16_t number_step_motor, uint8_t direction) {
 }
 
 void SM_Driver_Enable_Step_Motors () {
-    for (int i = 0; i < NUMBER_STEP_MOTORS; ++i)
-        SM_Enable (&drimem.step_motor[i]);
+    SM_Enable (drimem.step_motor);
 }
 void SM_Driver_Disable_Step_Motors () {
     for (int i = 0; i < NUMBER_STEP_MOTORS; ++i)
