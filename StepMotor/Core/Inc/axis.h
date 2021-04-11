@@ -1,12 +1,8 @@
 #ifndef AXIS_H
 #define AXIS_H
 
-#include "StepMotorLib.h"
+#include <stdint.h>
 
-typedef struct {
-    StepMotor* motor;
-} axis_t;
-
-int AxisRotate (axis_t axis, int urad, int usec);
+int AxisRotate (uint16_t number_step_motor, int urad, int usec);
 
 #endif // AXIS_H

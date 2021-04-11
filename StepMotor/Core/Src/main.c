@@ -27,6 +27,7 @@
 
 #include "StepMotorLib.h"
 #include "StepMotorParams.h"
+#include "StepMotorDriver.h"
 #include "axis.h"
 
 /* USER CODE END Includes */
@@ -92,23 +93,35 @@ void Step (int adim, int yon) // step motor fonksiyonu. iki adet parametre alica
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-const int freq = 2400;
+void ErrorActions () {
+  LL_GPIO_ResetOutputPin (LD3_GPIO_Port, LD3_Pin);
+  LL_GPIO_ResetOutputPin (LD4_GPIO_Port, LD4_Pin);
 
-void TIM2_Callback (void) {
-  return;
-  const int tim_freq = 240000;
+  while (1) {  
+    LL_GPIO_SetOutputPin (LD3_GPIO_Port, LD3_Pin);
+    LL_GPIO_SetOutputPin (LD4_GPIO_Port, LD4_Pin);
+    LL_mDelay (200);
 
-  if (LL_TIM_IsActiveFlag_UPDATE (TIM2)) {
-    LL_TIM_ClearFlag_UPDATE (TIM2);
+    LL_GPIO_ResetOutputPin (LD3_GPIO_Port, LD3_Pin);
+    LL_GPIO_ResetOutputPin (LD4_GPIO_Port, LD4_Pin);
+    LL_mDelay (200);
 
-    static int acc = 0;
-
-    if (++acc == tim_freq / freq) {
-      acc = 0;
-      //LL_GPIO_TogglePin (STEP_GPIO_Port, STEP_Pin);
-    }
   }
 }
+
+void PrepareTimes () {
+  LL_TIM_CC_EnableChannel (TIM2, LL_TIM_CHANNEL_CH1);
+
+  LL_TIM_DisableCounter (SM_DRIVER_TIMER);
+  LL_TIM_DisableCounter (TIM2);
+  
+  LL_TIM_ClearFlag_UPDATE (SM_DRIVER_TIMER);
+  LL_TIM_ClearFlag_UPDATE (TIM2);
+
+  LL_TIM_EnableIT_UPDATE (SM_DRIVER_TIMER);
+  LL_TIM_EnableIT_UPDATE (TIM2);
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -147,41 +160,13 @@ int main(void)
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
-  //LL_TIM_EnableIT_UPDATE (TIM2);
-  //LL_TIM_EnableCounter (TIM2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   
-  const int mAngle = 2 * 360 * 1000;
-  const int dtime = 100;
-  const int time_sleep = 2000;
-
-  StepMotor stepMotor = {
-    .dir.port    = DIR_GPIO_Port,
-    .dir.pin     = DIR_Pin,
-    //.step.port   = STEP_GPIO_Port,
-    //.step.pin    = STEP_Pin,
-    .enable.port = ENABLE_GPIO_Port,
-    .enable.pin  = ENABLE_Pin 
-  };
-
-  //LL_TIM_CC_EnableChannel (TIM2, LL_TIM_CHANNEL_CH1);
-  //LL_TIM_EnableCounter (TIM2);
-
-  //LL_TIM_OC_SetCompareCH1 (TIM2, 5);
-
-  //ST_Enable (stepMotor);
-
-  /*for (int i = 0; i < 100; i += 10) {
-      LL_TIM_OC_SetCompareCH1 (TIM1, i);
-      LL_mDelay (500);
-  }*/
-
-  axis_t axis = {
-    .motor = &stepMotor
-  };
+  if (InitializeDriverStepMotors () == -1)
+    ErrorActions ();
 
   for (int i = 0; i < 3; ++i) {
     LL_mDelay (30);
@@ -189,33 +174,9 @@ int main(void)
     LL_mDelay (30);
     LL_GPIO_ResetOutputPin (LD4_GPIO_Port, LD4_Pin);
   }
-  
-  /// -------------------------------------------------------
-  /* Эталон
-  LL_TIM_CC_EnableChannel (TIM2, LL_TIM_CHANNEL_CH1);
 
-  LL_TIM_OC_DisablePreload (TIM2, LL_TIM_CHANNEL_CH1);
-  LL_TIM_SetAutoReload (TIM2, 999);
-  LL_TIM_OC_SetCompareCH1 (TIM2, 10);
-  LL_TIM_OC_EnablePreload (TIM2, LL_TIM_CHANNEL_CH1);
-  
-  LL_TIM_OC_SetCompareCH1 (TIM2, 0);
-  LL_TIM_EnableCounter (TIM2);
-  */
-  /// -------------------------------------------------------
-
-  LL_TIM_DisableCounter (STEP_DRIVER_TIMER);
-  LL_TIM_DisableCounter (TIM2);
-  
-  LL_TIM_ClearFlag_UPDATE (STEP_DRIVER_TIMER);
-  LL_TIM_ClearFlag_UPDATE (TIM2);
-
-  LL_TIM_EnableIT_UPDATE (STEP_DRIVER_TIMER);
-  LL_TIM_EnableIT_UPDATE (TIM2);
-
-  ST_Enable (stepMotor);
-
-  LL_TIM_CC_EnableChannel (TIM2, LL_TIM_CHANNEL_CH1);
+  PrepareTimes ();
+  SM_Driver_Enable_Step_Motors ();  
 
   while (1)
   {
@@ -224,13 +185,12 @@ int main(void)
     /* USER CODE BEGIN 3 */
     
     LL_GPIO_SetOutputPin (LD4_GPIO_Port, LD4_Pin);
-    LL_mDelay (1000);
+    LL_mDelay (250);
 
-    // TODO отдебажить вращение 
-    AxisRotate (axis, PI_HALF_URAD, 1000 * 200);
+    AxisRotate (0, 2 * PI_URAD, 1000 * 400);
     
     LL_GPIO_ResetOutputPin (LD4_GPIO_Port, LD4_Pin);
-    LL_mDelay (1000);
+    LL_mDelay (250);
   }
   /* USER CODE END 3 */
 }

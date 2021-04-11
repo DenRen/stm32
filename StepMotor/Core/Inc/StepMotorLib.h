@@ -3,10 +3,12 @@
 
 // #include "cmsis_gcc.h"
 
+#include "StepMotorParams.h"
 #include "main.h"
-
 #include "stm32f0xx.h"
 #include "stm32f0xx_ll_gpio.h"
+
+#include <stdlib.h>
 
 #define SM_DELTA_TIME 1000          // Microseconds
 
@@ -15,68 +17,88 @@
 #define NUM_POS_PER_REV 200         // Number positions shaft per 360 degrees
 #define NUM_STEP_PER_mANGLE NUM_POS_PER_REV / (360 * 1000)
 
+// ==========================\\
+// Main structures Step Motor ----------------------------------------------------------------
+// ==========================//
+
 typedef struct
 {
     GPIO_TypeDef* port;
     uint32_t pin;
 } wire_t;
 
+typedef struct {
+    TIM_TypeDef* TIMx;
+    uint32_t CHANNEL_CHx;
+} timer_channel_t;
+
 typedef struct
 {
-    wire_t step;
+    timer_channel_t timer_channel;
     wire_t dir;
     wire_t enable;
-} StepMotor;
+} step_motor_t;
 
-typedef enum
-{
-    CLOCKWISE,
-    CTR_CLOCKWISE
-} DIR_ROTATE;
+// ==================================\\
+// Verifiers of the above structures  --------------------------------------------------------
+// ==================================//
 
-
-__STATIC_INLINE void ST_Enable  (const StepMotor stepMotor) {
-    LL_GPIO_ResetOutputPin (stepMotor.enable.port, stepMotor.enable.pin);
+__STATIC_INLINE int SM_Wire_Verificator (wire_t* wire) {
+    return wire       != NULL &&
+           wire->port != NULL &&
+           wire->pin  <= LL_GPIO_PIN_ALL;
+} 
+__STATIC_INLINE int SM_Timer_Channel_Verificator (timer_channel_t* timer_channel) {
+    return timer_channel              != NULL &&
+           timer_channel->TIMx        != NULL &&
+           timer_channel->CHANNEL_CHx <= LL_TIM_CHANNEL_CH4;
 }
-__STATIC_INLINE void ST_Disable (const StepMotor stepMotor) {
-    LL_GPIO_SetOutputPin (stepMotor.enable.port, stepMotor.enable.pin);
-}
-
-__STATIC_INLINE void ST_SetDir_ClockWise        (const StepMotor stepMotor) {
-    LL_GPIO_SetOutputPin (stepMotor.dir.port, stepMotor.dir.pin);
-}
-__STATIC_INLINE void ST_SetDir_CounterClockWise (const StepMotor stepMotor) {
-    LL_GPIO_ResetOutputPin (stepMotor.dir.port, stepMotor.dir.pin);
-}
-
-__STATIC_INLINE void ST_Rotate (const StepMotor stepMotor, uint32_t d_mAngle) { // In milliangles
-    uint32_t numSteps = d_mAngle * NUM_STEP_PER_mANGLE;
-
-    const wire_t step = stepMotor.step;
-
-    //while (numSteps--) {
-    for (int i = 0; i < numSteps; ++i) {
-        LL_GPIO_SetOutputPin (step.port, step.pin);
-        LL_GPIO_SetOutputPin (LD3_GPIO_Port, LD3_Pin);
-        LL_mDelay (SM_DELTA_TIME_ms);
-        LL_mDelay (2);
-
-        LL_GPIO_ResetOutputPin (step.port, step.pin);
-        LL_GPIO_ResetOutputPin (LD3_GPIO_Port, LD3_Pin);
-        LL_mDelay (SM_DELTA_TIME_ms);
-        LL_mDelay (2);
-    }
+__STATIC_INLINE int SM_Step_Motor_Verificator (step_motor_t* step_motor) {
+    return (SM_Timer_Channel_Verificator (&step_motor->timer_channel) == -1) &&
+           (SM_Wire_Verificator          (&step_motor->dir)           == -1) &&
+           (SM_Wire_Verificator          (&step_motor->enable)        == -1);
 }
 
-// --------------------------------------
+// ======================================\\
+// Enable/Disable and Direction functions ----------------------------------------------------
+// ======================================//
 
+// !!! This functions don't check on NULL pointer
+
+__STATIC_INLINE void SM_Enable  (const step_motor_t* stepMotor) {
+    LL_GPIO_ResetOutputPin (stepMotor->enable.port, stepMotor->enable.pin);
+}
+__STATIC_INLINE void SM_Disable (const step_motor_t* stepMotor) {
+    LL_GPIO_SetOutputPin (stepMotor->enable.port, stepMotor->enable.pin);
+}
+
+__STATIC_INLINE void SM_Set_Dir_ClockWise        (const step_motor_t* stepMotor) {
+    LL_GPIO_SetOutputPin (stepMotor->dir.port, stepMotor->dir.pin);
+}
+__STATIC_INLINE void SM_Set_Dir_CounterClockWise (const step_motor_t* stepMotor) {
+    LL_GPIO_ResetOutputPin (stepMotor->dir.port, stepMotor->dir.pin);
+}
+__STATIC_INLINE void SM_Set_Direction            (const step_motor_t* stepMotor, uint8_t direction) {
+    if (direction >= 0)
+        SM_Set_Dir_ClockWise (stepMotor);
+    else
+        SM_Set_Dir_CounterClockWise (stepMotor);
+}
+
+// =========================\\
+// Main structures Unit Task -----------------------------------------------------------------
+// =========================//
+
+// Task for one step motor
 typedef struct {
-    uint32_t number_steps;
-    uint32_t timer_counter;
-} driver_memory_t;
+    uint16_t number_steps;
+    uint16_t timer_counter;
+    uint8_t  direction : 1;
+} sm_unit_task_t;
 
-extern driver_memory_t driver_memory;
+// =====================\\
+// Driver user functions ---------------------------------------------------------------------
+// =====================//
 
-void ST_Step_Driver ();
 
 #endif // STEP_MOTOR_LIB_H

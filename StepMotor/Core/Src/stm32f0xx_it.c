@@ -31,7 +31,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
-void TIM2_Callback (void);
+
 /* USER CODE END TD */
 
 /* Private define ------------------------------------------------------------*/
@@ -152,8 +152,8 @@ void TIM6_DAC_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
   
-  if (LL_TIM_IsActiveFlag_UPDATE (STEP_DRIVER_TIMER)) {
-    LL_TIM_ClearFlag_UPDATE (STEP_DRIVER_TIMER);
+  if (LL_TIM_IsActiveFlag_UPDATE (SM_DRIVER_TIMER)) {
+    LL_TIM_ClearFlag_UPDATE (SM_DRIVER_TIMER);
 
     ST_Step_Driver ();
   }

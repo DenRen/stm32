@@ -1,2 +1,3 @@
 StepMotor/build
 *.o
+*.gch
