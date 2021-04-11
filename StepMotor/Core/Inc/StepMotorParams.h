@@ -27,9 +27,9 @@
 
 // Pulse parameter --------------------------------------------------------------------------------
 #define MIN_PULSE_LEN               10
-#define PULSE_TIMER_FREQ            1000000
-#define PULSE_TIMER_AUTORELOAD      99
-#define PULSE_TIMER_COMPARE_VALUE   20
+#define PULSE_TIMER_FREQ            100000
+#define PULSE_TIMER_AUTORELOAD      9
+#define PULSE_TIMER_COMPARE_VALUE   9
 
 #define INC_FULL_TURN       ( FULL_STEP_FULL_TURN * INC_STEP )
 #define STEP_ANGLE          ( 2 * PI_URAD / INC_FULL_TURN )
@@ -39,7 +39,7 @@
 #define MIN_PULSE_LEN_NSEC  (1000 * MIN_PULSE_LEN)
 
 // Check on correct input value -------------------------------------------------------------------
-#if PULSE_TIMER_COMPARE_VALUE >= PULSE_TIMER_AUTORELOAD
+#if PULSE_TIMER_COMPARE_VALUE > PULSE_TIMER_AUTORELOAD
     #error "PULSE_TIMER_COMPARE >= PULSE_TIMER_AUTORELOAD"
 #endif
 

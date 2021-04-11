@@ -44,16 +44,16 @@ __STATIC_INLINE void SM_SendStep (timer_channel_t timer_channel) {
 
 void ST_Step_Driver () {
     for (uint32_t i = 0; i < NUMBER_STEP_MOTORS; ++i) {
-        uint32_t* number_steps = &drimem.unit_task[i].number_steps;
+        uint16_t* number_steps = &(drimem.unit_task[i].number_steps);
 
-        if (*number_steps) {      
-            sm_unit_task_t* unit_task = &drimem.unit_task[i];
-            uint32_t counter = ++drimem.counters[i];
+        if (*number_steps != 0) {      
+            sm_unit_task_t* unit_task = &(drimem.unit_task[i]);
+            uint32_t counter = ++(drimem.counters[i]);
 
             if (counter == unit_task->timer_counter || counter == 0) {
                 drimem.counters[i] = 0;
                 
-                *number_steps++;
+                (*number_steps)--;
 
                 SM_SendStep (drimem.step_motor[i].timer_channel);
             }
@@ -70,7 +70,8 @@ void SM_Driver_Reset_Unit_Tasks () {
     bzero (&drimem.unit_task, sizeof (drimem.unit_task));
 }
 void SM_Driver_Reset_Counters () {
-    bzero (&drimem.counters, sizeof (drimem.counters));
+    for (int i = 0; i < NUMBER_STEP_MOTORS; ++i)
+        drimem.counters[i] = -1;
 }
 void SM_Driver_Reset_All () {
     SM_Driver_Reset_Step_Motors ();
@@ -111,4 +112,11 @@ void SM_Driver_Enable_Step_Motors () {
 void SM_Driver_Disable_Step_Motors () {
     for (int i = 0; i < NUMBER_STEP_MOTORS; ++i)
         SM_Disable (&drimem.step_motor[i]);
+}
+
+void SM_Driver_Set_Task (uint16_t number_step_motor, const sm_unit_task_t* unit_task) {
+    drimem.unit_task[number_step_motor] = *unit_task;
+
+    SM_Driver_Set_Direction (number_step_motor, unit_task->direction);
+    drimem.counters[number_step_motor] = -1;
 }

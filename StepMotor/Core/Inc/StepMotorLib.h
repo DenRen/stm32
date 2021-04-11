@@ -100,5 +100,6 @@ typedef struct {
 // Driver user functions ---------------------------------------------------------------------
 // =====================//
 
+void SM_Driver_Set_Task (uint16_t number_step_motor, const sm_unit_task_t* unit_task);
 
 #endif // STEP_MOTOR_LIB_H

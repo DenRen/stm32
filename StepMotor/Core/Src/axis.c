@@ -19,13 +19,13 @@ int AxisRotate (uint16_t number_step_motor, int urad, int usec) {
     const uint32_t delta_time   = usec / number_steps;
 
     sm_unit_task_t unit_task = {
-        .number_steps = number_steps,
-        .timer_counter = DeltaTime2TimerTick (delta_time)
+        .number_steps  = number_steps,
+        .timer_counter = DeltaTime2TimerTick (delta_time),
+        .direction     = urad >= 0
     };
-
-    // Temporary here
-    SM_Driver_Set_Direction (number_step_motor, urad >= 0);
     
+    SM_Driver_Set_Task (number_step_motor, &unit_task);
+
     LL_TIM_EnableCounter (SM_DRIVER_TIMER);
     
     return 0;

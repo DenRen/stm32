@@ -187,8 +187,8 @@ int main(void)
     LL_GPIO_SetOutputPin (LD4_GPIO_Port, LD4_Pin);
     LL_mDelay (250);
 
-    AxisRotate (0, 2 * PI_URAD, 1000 * 400);
-    
+    AxisRotate (0, PI_HALF_URAD, 1000 * 200);
+
     LL_GPIO_ResetOutputPin (LD4_GPIO_Port, LD4_Pin);
     LL_mDelay (250);
   }
