@@ -22,8 +22,6 @@ static sm_driver_memory_t drimem = {0}; // Driver memory
   */
   /// -------------------------------------------------------
 
-
-// TODO нужно допилить для многозадачности, чтобы пачкой отправлять импульсы
 __STATIC_FORCEINLINE void SendPulse (timer_channel_t timer_channel, uint32_t len_pulse) {
     TIM_TypeDef* TIMx = timer_channel.TIMx;
     uint32_t TIM_CHANNEL_CHx = timer_channel.CHANNEL_CHx;
@@ -34,19 +32,36 @@ __STATIC_FORCEINLINE void SendPulse (timer_channel_t timer_channel, uint32_t len
     LL_TIM_OC_EnablePreload (TIMx, TIM_CHANNEL_CHx);    // So that after the pulse, the output is 0
     LL_TIM_OC_SetCompareCH1 (TIMx, 0);                  // Set 0 to CCRx
 
-    LL_TIM_CC_EnableChannel (TIMx, TIM_CHANNEL_CHx);
     LL_TIM_EnableCounter (TIMx);                        // Start generate pulse
 }
 
-__STATIC_INLINE void SM_SendStep (timer_channel_t timer_channel) {
+__STATIC_INLINE void SM_Send_Step (timer_channel_t timer_channel) {
     SendPulse (timer_channel, PULSE_TIMER_COMPARE_VALUE);
 }
 
+__STATIC_INLINE void SM_Enable_TIM_Channel (timer_channel_t timer_channel) {
+    LL_TIM_CC_EnableChannel (timer_channel.TIMx, timer_channel.CHANNEL_CHx);
+}
+
+__STATIC_INLINE void SM_Disable_TIM_Channel (timer_channel_t timer_channel) {
+    LL_TIM_CC_DisableChannel (timer_channel.TIMx, timer_channel.CHANNEL_CHx);
+}
+
+// Только для одного таймера
 void ST_Step_Driver () {
+    static uint8_t channels_is_active = 0;
+
+    if (channels_is_active) {
+        for (int i = 0; i < NUMBER_STEP_MOTORS; ++i)
+            SM_Disable_TIM_Channel (drimem.step_motor[i].timer_channel);
+        
+        channels_is_active = 0;
+    }
+
     for (uint32_t i = 0; i < NUMBER_STEP_MOTORS; ++i) {
         uint16_t* number_steps = &(drimem.unit_task[i].number_steps);
 
-        if (*number_steps != 0) {      
+        if (*number_steps) {      
             sm_unit_task_t* unit_task = &(drimem.unit_task[i]);
             uint32_t counter = ++(drimem.counters[i]);
 
@@ -55,10 +70,16 @@ void ST_Step_Driver () {
                 
                 (*number_steps)--;
 
-                SM_SendStep (drimem.step_motor[i].timer_channel);
+                channels_is_active = 1;
+                const timer_channel_t timer_channel = drimem.step_motor[i].timer_channel;
+
+                SM_Enable_TIM_Channel (timer_channel);
             }
         }
     }
+    
+    if (channels_is_active)
+        SM_Send_Step (drimem.step_motor[0].timer_channel);
 }
 
 // Step motor driver memory ---------------------------------

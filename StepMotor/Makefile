@@ -22,7 +22,7 @@ TARGET = StepMotor
 # debug build?
 DEBUG = 1
 # optimization
-OPT = -O0
+OPT = -O3
 
 
 #######################################

@@ -21,7 +21,7 @@ int AxisRotate (uint16_t number_step_motor, int urad, int usec) {
     sm_unit_task_t unit_task = {
         .number_steps  = number_steps,
         .timer_counter = DeltaTime2TimerTick (delta_time),
-        .direction     = urad >= 0
+        .direction     = urad > 0
     };
     
     SM_Driver_Set_Task (number_step_motor, &unit_task);

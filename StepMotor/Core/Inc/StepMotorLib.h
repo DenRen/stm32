@@ -79,7 +79,7 @@ __STATIC_INLINE void SM_Set_Dir_CounterClockWise (const step_motor_t* stepMotor)
     LL_GPIO_ResetOutputPin (stepMotor->dir.port, stepMotor->dir.pin);
 }
 __STATIC_INLINE void SM_Set_Direction            (const step_motor_t* stepMotor, uint8_t direction) {
-    if (direction >= 0)
+    if (direction > 0)
         SM_Set_Dir_ClockWise (stepMotor);
     else
         SM_Set_Dir_CounterClockWise (stepMotor);
