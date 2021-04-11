@@ -154,13 +154,13 @@ int main(void)
     /* USER CODE BEGIN 3 */
     
     LL_GPIO_SetOutputPin (LD4_GPIO_Port, LD4_Pin);
-    LL_mDelay (250);
+    LL_mDelay (120);
 
-    AxisRotate (0, PI_HALF_URAD, 1000 * 200);
-    AxisRotate (1, PI_HALF_URAD, 1000 * 200);
+    AxisRotate (0, +PI_HALF_URAD, 1000 * 400);
+    AxisRotate (1, -PI_HALF_URAD, 1000 * 400);
 
     LL_GPIO_ResetOutputPin (LD4_GPIO_Port, LD4_Pin);
-    LL_mDelay (250);
+    LL_mDelay (0);
   }
   /* USER CODE END 3 */
 }

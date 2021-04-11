@@ -15,7 +15,7 @@ __STATIC_INLINE uint32_t DeltaTime2TimerTick (uint32_t delta_time) {
 }
 
 int AxisRotate (uint16_t number_step_motor, int urad, int usec) {
-    const uint32_t number_steps = urad / STEP_ANGLE;
+    const uint32_t number_steps = abs (urad) / STEP_ANGLE;
     const uint32_t delta_time   = usec / number_steps;
 
     sm_unit_task_t unit_task = {

@@ -22,34 +22,21 @@ static sm_driver_memory_t drimem = {0}; // Driver memory
   */
   /// -------------------------------------------------------
 
-__STATIC_FORCEINLINE void PrepearPulseChannel (timer_channel_t timer_channel, uint32_t pulse_len) {
-    TIM_TypeDef* TIMx = timer_channel.TIMx;
-    uint32_t TIM_CHANNEL_CHx = timer_channel.CHANNEL_CHx;
-
-    LL_TIM_OC_DisablePreload (TIMx, TIM_CHANNEL_CHx);   // To instantly change timer settings
-    LL_TIM_OC_SetCompareCH1 (TIMx, pulse_len);          // Set length pulse
-    
-    LL_TIM_OC_EnablePreload (TIMx, TIM_CHANNEL_CHx);    // So that after the pulse, the output is 0
-    LL_TIM_OC_SetCompareCH1 (TIMx, 0);                  // Set 0 to CCRx
+#define TEMPLATE_Prepeare_PulseCHx(x)                                                                   \
+                                                                                                        \
+__STATIC_FORCEINLINE void Prepeare_PulseCH##x (TIM_TypeDef* TIMx,                                       \
+                                               uint32_t TIM_CHANNEL_CHx,                                \
+                                               uint32_t pulse_len) {                                    \
+                                                                                                        \
+    LL_TIM_OC_DisablePreload  (TIMx, TIM_CHANNEL_CHx);  /* To instantly change timer settings */        \
+    LL_TIM_OC_SetCompareCH##x (TIMx, pulse_len);        /* Set length pulse  */                         \
+                                                                                                        \
+    LL_TIM_OC_EnablePreload   (TIMx, TIM_CHANNEL_CHx);  /* So that after the pulse, the output is 0 */  \
+    LL_TIM_OC_SetCompareCH##x (TIMx, 0);                /* Set 0 to CCRx */                             \
 }
 
-__STATIC_FORCEINLINE void SM_Prepear_Pulse_Channel (timer_channel_t timer_channel) {
-    PrepearPulseChannel (timer_channel, PULSE_TIMER_COMPARE_VALUE);
-}
-
-__STATIC_FORCEINLINE void SendPulse (timer_channel_t timer_channel, uint32_t pulse_len) {
-    PrepearPulseChannel (timer_channel, pulse_len);
-
-    LL_TIM_EnableCounter (timer_channel.TIMx);                      // Start generate pulse
-}
-
-__STATIC_FORCEINLINE void SM_Send_Pulses (TIM_TypeDef* TIMx) {
-    LL_TIM_EnableCounter (TIMx);                                    // Start generate pulses
-}
-
-__STATIC_INLINE void SM_Send_Step (timer_channel_t timer_channel) {
-    SendPulse (timer_channel, PULSE_TIMER_COMPARE_VALUE);
-}
+TEMPLATE_Prepeare_PulseCHx (1)
+TEMPLATE_Prepeare_PulseCHx (2)
 
 void SM_Enable_TIM_Channel (timer_channel_t timer_channel) {
     LL_TIM_CC_EnableChannel (timer_channel.TIMx, timer_channel.CHANNEL_CHx);
@@ -74,22 +61,34 @@ void ST_Step_Driver () {
         channels_is_active = 0;
     }
     
-    for (uint32_t i = 0; i < NUMBER_STEP_MOTORS; ++i) {
-        uint16_t* number_steps = &(drimem.unit_task[i].number_steps);
+    for (uint32_t num_sm = 0; num_sm < NUMBER_STEP_MOTORS; ++num_sm) {
+        uint16_t* number_steps = &(drimem.unit_task[num_sm].number_steps);
 
         if (*number_steps) {      
-            sm_unit_task_t unit_task = drimem.unit_task[i];
-            uint32_t counter = ++(drimem.counters[i]);
+            sm_unit_task_t unit_task = drimem.unit_task[num_sm];
+            uint32_t counter = ++(drimem.counters[num_sm]);
 
             if (counter == unit_task.timer_counter || counter == 0) {
-                drimem.counters[i] = 0;
+                drimem.counters[num_sm] = 0;
                 
                 (*number_steps)--;
 
                 channels_is_active = 1;
-                const timer_channel_t timer_channel = drimem.step_motor[i].timer_channel;
+                const timer_channel_t timer_channel = drimem.step_motor[num_sm].timer_channel;
 
-                SM_Prepear_Pulse_Channel (timer_channel);
+                TIM_TypeDef* TIMx = timer_channel.TIMx;
+                uint32_t TIM_CHANNEL_CHx = timer_channel.CHANNEL_CHx;
+
+                switch (num_sm) {
+                case 0:
+                    Prepeare_PulseCH1 (TIMx, TIM_CHANNEL_CHx, PULSE_TIMER_COMPARE_VALUE);
+                    break;
+                case 1:
+                    Prepeare_PulseCH2 (TIMx, TIM_CHANNEL_CHx, PULSE_TIMER_COMPARE_VALUE);
+                    break;
+                }
+
+                LL_TIM_CC_EnableChannel (TIMx, TIM_CHANNEL_CHx);
             }
         }
     }
