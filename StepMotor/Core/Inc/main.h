@@ -78,10 +78,14 @@ void Error_Handler(void);
 #define DIR_0_GPIO_Port GPIOC
 #define DIR_1_Pin LL_GPIO_PIN_2
 #define DIR_1_GPIO_Port GPIOC
+#define DIR_2_Pin LL_GPIO_PIN_3
+#define DIR_2_GPIO_Port GPIOC
 #define B1_Pin LL_GPIO_PIN_0
 #define B1_GPIO_Port GPIOA
 #define STEP_0_Pin LL_GPIO_PIN_1
 #define STEP_0_GPIO_Port GPIOA
+#define STEP_2_Pin LL_GPIO_PIN_2
+#define STEP_2_GPIO_Port GPIOA
 #define STEP_1_Pin LL_GPIO_PIN_5
 #define STEP_1_GPIO_Port GPIOA
 #define LD4_Pin LL_GPIO_PIN_8

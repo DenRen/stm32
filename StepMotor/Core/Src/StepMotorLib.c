@@ -35,8 +35,18 @@ __STATIC_FORCEINLINE void Prepeare_PulseCH##x (TIM_TypeDef* TIMx,               
     LL_TIM_OC_SetCompareCH##x (TIMx, 0);                /* Set 0 to CCRx */                             \
 }
 
-TEMPLATE_Prepeare_PulseCHx (1)
-TEMPLATE_Prepeare_PulseCHx (2)
+#if NUMBER_STEP_MOTORS >=      (1)
+    TEMPLATE_Prepeare_PulseCHx (1)
+#endif
+#if NUMBER_STEP_MOTORS >=      (2)
+    TEMPLATE_Prepeare_PulseCHx (2)
+#endif
+#if NUMBER_STEP_MOTORS >=      (3)
+    TEMPLATE_Prepeare_PulseCHx (3)
+#endif
+#if NUMBER_STEP_MOTORS >=      (4)
+    TEMPLATE_Prepeare_PulseCHx (4)
+#endif
 
 void SM_Enable_TIM_Channel (timer_channel_t timer_channel) {
     LL_TIM_CC_EnableChannel (timer_channel.TIMx, timer_channel.CHANNEL_CHx);
@@ -46,21 +56,40 @@ void SM_Disable_TIM_Channel (timer_channel_t timer_channel) {
     LL_TIM_CC_DisableChannel (timer_channel.TIMx, timer_channel.CHANNEL_CHx);
 }
 
-#include "stm32f0xx.h"
-
 // Только для одного таймера
 void ST_Step_Driver () {
     static uint8_t channels_is_active = 0;
+    
+    #define DISABLE_PRELOAD_CHx(num_channel)\
+        LL_TIM_OC_DisablePreload (SM_PULSE_TIMER, LL_TIM_CHANNEL_CH##num_channel);
+    
+    #define SET_COMPARE_CHx(num_channel)\
+        LL_TIM_OC_SetCompareCH##num_channel (SM_PULSE_TIMER, 0);
+
     if (channels_is_active) {
-        LL_TIM_OC_DisablePreload (TIM2, LL_TIM_CHANNEL_CH1);
-        LL_TIM_OC_DisablePreload (TIM2, LL_TIM_CHANNEL_CH2);
-        
-        for (int i = 0; i < NUMBER_STEP_MOTORS; ++i)
-            LL_TIM_OC_SetCompareCH1 (drimem.step_motor[i].timer_channel.TIMx, 0);
+        #if NUMBER_STEP_MOTORS >= (1)
+            DISABLE_PRELOAD_CHx   (1)
+            SET_COMPARE_CHx       (1)
+        #endif
+        #if NUMBER_STEP_MOTORS >= (2)
+            DISABLE_PRELOAD_CHx   (2)
+            SET_COMPARE_CHx       (2)
+        #endif
+        #if NUMBER_STEP_MOTORS >= (3)
+            DISABLE_PRELOAD_CHx   (3)
+            SET_COMPARE_CHx       (3)
+        #endif
+        #if NUMBER_STEP_MOTORS >= (4)
+            DISABLE_PRELOAD_CHx   (4)
+            SET_COMPARE_CHx       (4)
+        #endif
         
         channels_is_active = 0;
     }
     
+    #undef SET_COMPARE_CHx
+    #undef DISABLE_PRELOAD_CHx
+
     for (uint32_t num_sm = 0; num_sm < NUMBER_STEP_MOTORS; ++num_sm) {
         uint16_t* number_steps = &(drimem.unit_task[num_sm].number_steps);
 
@@ -79,23 +108,34 @@ void ST_Step_Driver () {
                 TIM_TypeDef* TIMx = timer_channel.TIMx;
                 uint32_t TIM_CHANNEL_CHx = timer_channel.CHANNEL_CHx;
 
+                #define CASE_PREPARE_PULSECHx(x)                                            \
+                case ((x) - 1):                                                             \
+                    Prepeare_PulseCH##x (TIMx, TIM_CHANNEL_CHx, PULSE_TIMER_COMPARE_VALUE); \
+                    break;
+
                 switch (num_sm) {
-                case 0:
-                    Prepeare_PulseCH1 (TIMx, TIM_CHANNEL_CHx, PULSE_TIMER_COMPARE_VALUE);
-                    break;
-                case 1:
-                    Prepeare_PulseCH2 (TIMx, TIM_CHANNEL_CHx, PULSE_TIMER_COMPARE_VALUE);
-                    break;
+                    #if (NUMBER_STEP_MOTORS) >= (1)
+                        CASE_PREPARE_PULSECHx   (1);
+                    #endif
+                    #if (NUMBER_STEP_MOTORS) >= (2)
+                        CASE_PREPARE_PULSECHx   (2);
+                    #endif
+                    #if (NUMBER_STEP_MOTORS) >= (3)
+                        CASE_PREPARE_PULSECHx   (3);
+                    #endif
+                    #if (NUMBER_STEP_MOTORS) >= (4)
+                        CASE_PREPARE_PULSECHx   (4);
+                    #endif
                 }
+
+                #undef CASE_PREPARE_PULSECHx
 
                 LL_TIM_CC_EnableChannel (TIMx, TIM_CHANNEL_CHx);
             }
         }
     }
-    
-    //if (channels_is_active) 
-    //    LL_TIM_EnableCounter (TIM2);
 }
+
 
 // Step motor driver memory ---------------------------------
 

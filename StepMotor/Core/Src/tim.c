@@ -53,14 +53,21 @@ void MX_TIM2_Init(void)
   TIM_OC_InitStruct.OCNState = LL_TIM_OCSTATE_DISABLE;
   LL_TIM_OC_Init(TIM2, LL_TIM_CHANNEL_CH2, &TIM_OC_InitStruct);
   LL_TIM_OC_DisableFast(TIM2, LL_TIM_CHANNEL_CH2);
+  LL_TIM_OC_EnablePreload(TIM2, LL_TIM_CHANNEL_CH3);
+  TIM_OC_InitStruct.OCState = LL_TIM_OCSTATE_DISABLE;
+  TIM_OC_InitStruct.OCNState = LL_TIM_OCSTATE_DISABLE;
+  LL_TIM_OC_Init(TIM2, LL_TIM_CHANNEL_CH3, &TIM_OC_InitStruct);
+  LL_TIM_OC_DisableFast(TIM2, LL_TIM_CHANNEL_CH3);
   LL_TIM_SetOnePulseMode(TIM2, LL_TIM_ONEPULSEMODE_SINGLE);
   LL_TIM_SetTriggerOutput(TIM2, LL_TIM_TRGO_RESET);
   LL_TIM_DisableMasterSlaveMode(TIM2);
   LL_TIM_OC_DisablePreload(TIM2, LL_TIM_CHANNEL_CH1);
   LL_TIM_OC_DisablePreload(TIM2, LL_TIM_CHANNEL_CH2);
+  LL_TIM_OC_DisablePreload(TIM2, LL_TIM_CHANNEL_CH3);
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
     /**TIM2 GPIO Configuration
     PA1     ------> TIM2_CH2
+    PA2     ------> TIM2_CH3
     PA5     ------> TIM2_CH1
     */
   GPIO_InitStruct.Pin = STEP_0_Pin;
@@ -70,6 +77,14 @@ void MX_TIM2_Init(void)
   GPIO_InitStruct.Pull = LL_GPIO_PULL_DOWN;
   GPIO_InitStruct.Alternate = LL_GPIO_AF_2;
   LL_GPIO_Init(STEP_0_GPIO_Port, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = STEP_2_Pin;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_DOWN;
+  GPIO_InitStruct.Alternate = LL_GPIO_AF_2;
+  LL_GPIO_Init(STEP_2_GPIO_Port, &GPIO_InitStruct);
 
   GPIO_InitStruct.Pin = STEP_1_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;

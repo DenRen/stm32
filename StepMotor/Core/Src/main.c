@@ -132,20 +132,16 @@ int main(void)
   if (InitializeDriverStepMotors () == -1)
     ErrorActions ();
 
-  for (int i = 0; i < 3; ++i) {
-    LL_mDelay (30);
-    LL_GPIO_SetOutputPin (LD4_GPIO_Port, LD4_Pin);  
-    LL_mDelay (30);
-    LL_GPIO_ResetOutputPin (LD4_GPIO_Port, LD4_Pin);
-  }
-
   PrepareTimes ();
-  SM_Driver_Enable_Step_Motors ();  
 
-  //LL_TIM_CC_EnableChannel (TIM2, LL_TIM_CHANNEL_CH1);
-  //LL_TIM_CC_EnableChannel (TIM2, LL_TIM_CHANNEL_CH2);
-
-  //AxisRotate (1, PI_HALF_URAD, 1000 * 200);
+  SM_Driver_Enable_Step_Motors ();
+  for (int i = 0; i < 3; ++i) {
+    AxisRotate (0,  PI_HALF_URAD, 1000 * 500);
+    AxisRotate (1, -PI_HALF_URAD / 8, 1000 * 500);
+    LL_mDelay (1000);
+    AxisRotate (2, PI_HALF_URAD / 4, 1000 * 500);
+  }
+  AxisRotate (1, PI_HALF_URAD, 1000 * 500);
 
   while (1)
   {
@@ -154,13 +150,13 @@ int main(void)
     /* USER CODE BEGIN 3 */
     
     LL_GPIO_SetOutputPin (LD4_GPIO_Port, LD4_Pin);
-    LL_mDelay (120);
+    LL_mDelay (1500);
 
-    AxisRotate (0, +PI_HALF_URAD, 1000 * 400);
-    AxisRotate (1, -PI_HALF_URAD, 1000 * 400);
+    //AxisRotate (0, +PI_HALF_URAD, 1000 * 1000);
+    //AxisRotate (1, +PI_HALF_URAD, 1000 * 1000);
 
     LL_GPIO_ResetOutputPin (LD4_GPIO_Port, LD4_Pin);
-    LL_mDelay (0);
+    LL_mDelay (1500);
   }
   /* USER CODE END 3 */
 }

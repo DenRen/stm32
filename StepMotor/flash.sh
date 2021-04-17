@@ -1,5 +1,3 @@
 #!/bin/bash
 
-make
-make -f MM erase
-make -f MM flash
+make && make -f MM erase && make -f MM flash

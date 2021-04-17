@@ -11,6 +11,7 @@
 
 #define SM_0_TIM_CHANNEL    LL_TIM_CHANNEL_CH1
 #define SM_1_TIM_CHANNEL    LL_TIM_CHANNEL_CH2
+#define SM_2_TIM_CHANNEL    LL_TIM_CHANNEL_CH3
 
 // Math constants ---------------------------------------------------------------------------------
 
@@ -20,7 +21,7 @@
 
 // Step motor params ------------------------------------------------------------------------------
 
-#define NUMBER_STEP_MOTORS 2
+#define NUMBER_STEP_MOTORS 3
 
 #define FULL_STEP_FULL_TURN 200
 #define INC_STEP            2       // Decay Modes for {1, 2, 4, 8, 16, ...} - Step Increments
@@ -46,6 +47,11 @@
 
 #if PULSE_LEN_NSEC < MIN_PULSE_LEN_NSEC
     #error "The timer generates too short pulses!"
+#endif
+
+#if NUMBER_STEP_MOTORS >= 4
+    #error "A lot of number steps! You use only one timer!\n"
+           "Please, update version"
 #endif
 
 int InitializeDriverStepMotors ();

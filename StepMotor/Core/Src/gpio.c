@@ -58,6 +58,9 @@ void MX_GPIO_Init(void)
   LL_GPIO_ResetOutputPin(DIR_1_GPIO_Port, DIR_1_Pin);
 
   /**/
+  LL_GPIO_ResetOutputPin(DIR_2_GPIO_Port, DIR_2_Pin);
+
+  /**/
   LL_GPIO_ResetOutputPin(LD4_GPIO_Port, LD4_Pin);
 
   /**/
@@ -74,7 +77,7 @@ void MX_GPIO_Init(void)
   /**/
   GPIO_InitStruct.Pin = DIR_0_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_DOWN;
   LL_GPIO_Init(DIR_0_GPIO_Port, &GPIO_InitStruct);
@@ -82,10 +85,18 @@ void MX_GPIO_Init(void)
   /**/
   GPIO_InitStruct.Pin = DIR_1_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_DOWN;
   LL_GPIO_Init(DIR_1_GPIO_Port, &GPIO_InitStruct);
+
+  /**/
+  GPIO_InitStruct.Pin = DIR_2_Pin;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_DOWN;
+  LL_GPIO_Init(DIR_2_GPIO_Port, &GPIO_InitStruct);
 
   /**/
   GPIO_InitStruct.Pin = LD4_Pin;
